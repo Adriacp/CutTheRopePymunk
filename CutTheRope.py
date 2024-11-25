@@ -17,18 +17,6 @@ disp_w = 600
 display = pygame.display.set_mode((disp_w,disp_h))
 clock = pygame.time.Clock()
 
-def convert_coordinates (point):
-  return int(point[0]), disp_h - int(point[1])
-
-class String():
-  def __init__(self,body1,body2):
-    self.body1 = body1
-    self.body2 = body2
-    joint = pymunk.PinJoint(body1,body2)    
-    space.add(joint)
-  def draw(self):
-    pygame.draw.line(display, (0,0,0), convert_coordinates(self.body1.position),convert_coordinates(self.body2.position),2)
-
 model_path = 'hand_landmarker.task'
 
 BaseOptions = mp.tasks.BaseOptions
@@ -113,9 +101,6 @@ options = HandLandmarkerOptions(
     result_callback=get_result)
 
 
-joint_1 = String(body_little, body_index)
-joint_2 = String(body_middle, body_ring)
-
 with HandLandmarker.create_from_options(options) as landmarker:
   # The landmarker is initialized. Use it here.
   # ...
@@ -177,8 +162,6 @@ with HandLandmarker.create_from_options(options) as landmarker:
     pygame.draw.circle(display, (0, 0, 255), (int(body_little.position.x), int(body_little.position.y)), int(circle.radius))
     pygame.draw.circle(display, (0, 0, 255), (int(body_ring.position.x), int(body_ring.position.y)), int(circle.radius))
     pygame.draw.circle(display, (0, 0, 255), (int(body_thumb.position.x), int(body_thumb.position.y)), int(circle.radius))
-    joint_1.draw()
-    joint_2.draw()
     
     pygame.display.flip()
     clock.tick(60)

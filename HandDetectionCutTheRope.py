@@ -177,8 +177,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
     pygame.draw.circle(display, (0, 0, 255), (int(body_little.position.x), int(body_little.position.y)), int(circle.radius))
     pygame.draw.circle(display, (0, 0, 255), (int(body_ring.position.x), int(body_ring.position.y)), int(circle.radius))
     pygame.draw.circle(display, (0, 0, 255), (int(body_thumb.position.x), int(body_thumb.position.y)), int(circle.radius))
-    joint_1.draw()
-    joint_2.draw()
+    
     
     pygame.display.flip()
     clock.tick(60)
