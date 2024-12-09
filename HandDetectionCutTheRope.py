@@ -23,32 +23,36 @@ space = pymunk.Space()
 space.gravity = (0, 900)
 draw_options = pymunk.pygame_util.DrawOptions(screen)
 
+
 def create_rope(space, start_pos, length=10, segment_length=20):
     """Creates a rope with tightly connected segments, anchored at the top."""
     segments = []
-    static_body = space.static_body  # Static body to anchor the rope
+    static_body = pymunk.Body(body_type= pymunk.Body.STATIC)
+    #static_body = space.static_body  # Static body to anchor the rope
     prev_body = static_body
-
-    for i in range(length):
+    static_body.position = start_pos
+    
+    for i in range(1, length):
         body = pymunk.Body()
         body.position = start_pos[0], start_pos[1] + i * segment_length
-        shape = pymunk.Segment(body, (0, 0), (0, segment_length), 2)
+        #shape = pymunk.Segment(body, (0, 0), (0, segment_length), 2)
+        shape = pymunk.Circle(body,  5)
         shape.density = 1
-        shape.elasticity = 0.1  # Reduce elasticity for stability
         space.add(body, shape)
         segments.append(shape)
         
         # Connect the segment to the previous body with tight joints
-        joint = pymunk.PivotJoint(prev_body, body, (start_pos[0], start_pos[1] + i * segment_length))
+        joint = pymunk.PinJoint(prev_body, body)
         space.add(joint)
 
         # Add a rotational limit to keep the rope segments stable
-        rotational_limit = pymunk.RotaryLimitJoint(prev_body, body, -0.5, 0.5)  # Limits the rotation
-        space.add(rotational_limit)
+        #rotational_limit = pymunk.RotaryLimitJoint(prev_body, body, -0.5, 0.5)  # Limits the rotation
+        #space.add(rotational_limit)
         
         prev_body = body
 
     return segments
+
 
 # Create ropes
 ropes = [
@@ -61,12 +65,15 @@ ropes = [
 candy_body = pymunk.Body()
 candy_body.position = (400, 100 + len(ropes[1]) * 20)
 candy_shape = pymunk.Circle(candy_body, 15)
-candy_shape.density = 1
-candy_shape.elasticity = 0.5
+candy_shape.density = 10
 space.add(candy_body, candy_shape)
 
 # Attach candy to the bottom of the middle rope
-candy_joint = pymunk.PinJoint(candy_body, ropes[1][-1].body, (0, 0), (0, 25))
+candy_joint = pymunk.PinJoint(candy_body, ropes[1][-1].body)
+space.add(candy_joint)
+candy_joint = pymunk.SlideJoint(candy_body, ropes[0][-1].body, (0,0), (0,0), min=20, max=40)
+space.add(candy_joint)
+candy_joint = pymunk.SlideJoint(candy_body, ropes[2][-1].body, (0,0), (0,0), min=20, max=40)
 space.add(candy_joint)
 
 # Goal area
@@ -148,8 +155,8 @@ while running:
                 # Check if the cutting point intersects with any rope segment
                 for rope in ropes:
                     for segment in rope:
-                        p1 = segment.body.position + segment.a
-                        p2 = segment.body.position + segment.b
+                        p1 = segment.body.position + segment
+                        p2 = segment.body.position + segment
                         if pygame.math.Vector2(index_x, index_y).distance_to((p1.x, p1.y)) < 10 or \
                            pygame.math.Vector2(index_x, index_y).distance_to((p2.x, p2.y)) < 10:
                             # Remove the segment and its joints safely
