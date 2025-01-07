@@ -28,14 +28,13 @@ def create_rope(space, start_pos, length=10, segment_length=20):
     """Creates a rope with tightly connected segments, anchored at the top."""
     segments = []
     static_body = pymunk.Body(body_type= pymunk.Body.STATIC)
-    #static_body = space.static_body  # Static body to anchor the rope
     prev_body = static_body
     static_body.position = start_pos
     
     for i in range(1, length):
         body = pymunk.Body()
         body.position = start_pos[0], start_pos[1] + i * segment_length
-        #shape = pymunk.Segment(body, (0, 0), (0, segment_length), 2)
+
         shape = pymunk.Circle(body,  5)
         shape.density = 1
         space.add(body, shape)
@@ -44,10 +43,6 @@ def create_rope(space, start_pos, length=10, segment_length=20):
         # Connect the segment to the previous body with tight joints
         joint = pymunk.PinJoint(prev_body, body)
         space.add(joint)
-
-        # Add a rotational limit to keep the rope segments stable
-        #rotational_limit = pymunk.RotaryLimitJoint(prev_body, body, -0.5, 0.5)  # Limits the rotation
-        #space.add(rotational_limit)
         
         prev_body = body
 
