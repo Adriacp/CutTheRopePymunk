@@ -95,6 +95,9 @@ while running:
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(rgb_frame)
 
+    # Display camera input
+    cv2.imshow("Camera Input", frame)
+    
     # Clear screen
     screen.fill((0, 0, 0))
 
@@ -116,22 +119,18 @@ while running:
         """
         Determines if the index and middle fingers are extended and making a cutting motion.
         """
-        # Index and middle finger tip positions
         index_tip = landmarks[8]
         middle_tip = landmarks[12]
+        index_pip = landmarks[6]
+        middle_pip = landmarks[10]
 
-        # Positions of the DIP (Distal Interphalangeal) joints for comparison
-        index_dip = landmarks[7]
-        middle_dip = landmarks[11]
+        # Check if fingers are extended
+        index_extended = index_tip.y < index_pip.y
+        middle_extended = middle_tip.y < middle_pip.y
 
-        # Check if fingers are extended: TIP is above DIP in the y-axis (screen coordinate system is inverted)
-        index_extended = index_tip.y < index_dip.y
-        middle_extended = middle_tip.y < middle_dip.y
-
-        # Define additional cutting logic (e.g., vertical or horizontal motion)
-        # Example: Check if both fingers move downward significantly
-        motion = index_tip.y - middle_tip.y
-        cutting_motion = index_extended and middle_extended and abs(motion) < 0.02  # Adjust the threshold
+        # Check relative horizontal distance for cutting motion
+        horizontal_distance = abs(index_tip.x - middle_tip.x)
+        cutting_motion = index_extended and middle_extended and horizontal_distance < 0.05
 
         return cutting_motion
 
@@ -140,9 +139,13 @@ while running:
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             landmarks = hand_landmarks.landmark
-            for lm in hand_landmarks.landmark:
-                x, y = int(lm.x * WIDTH), int(lm.y * HEIGHT)
-                pygame.draw.circle(screen, (0, 255, 0), (x, y), 5)
+
+            # Draw only index and middle fingers
+            for finger in [[5, 6, 7, 8], [9, 10, 11, 12]]:
+                for idx in finger:
+                    lm = landmarks[idx]
+                    x, y = int(lm.x * WIDTH), int(lm.y * HEIGHT)
+                    pygame.draw.circle(screen, (0, 255, 0), (x, y), 5)
                 
             if is_cutting_motion(landmarks):
                 # Calculate position of the index finger (for cutting collision detection)
@@ -155,8 +158,8 @@ while running:
                 # Check if the cutting point intersects with any rope segment
                 for rope in ropes:
                     for segment in rope:
-                        p1 = segment.body.position + segment
-                        p2 = segment.body.position + segment
+                        p1 = segment.body.position
+                        p2 = segment.body.position
                         if pygame.math.Vector2(index_x, index_y).distance_to((p1.x, p1.y)) < 10 or \
                            pygame.math.Vector2(index_x, index_y).distance_to((p2.x, p2.y)) < 10:
                             # Remove the segment and its joints safely
