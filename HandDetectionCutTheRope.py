@@ -74,6 +74,26 @@ space.add(candy_joint)
 # Goal area
 goal_rect = pygame.Rect(300, 500, 200, 50)
 
+# Cutting motion detection
+def is_cutting_motion(landmarks):
+        """
+        Determines if the index and middle fingers are extended and making a cutting motion.
+        """
+        index_tip = landmarks[8]
+        middle_tip = landmarks[12]
+        index_pip = landmarks[6]
+        middle_pip = landmarks[10]
+
+        # Check if fingers are extended
+        index_extended = index_tip.y < index_pip.y
+        middle_extended = middle_tip.y < middle_pip.y
+
+        # Check relative horizontal distance for cutting motion
+        horizontal_distance = abs(index_tip.x - middle_tip.x)
+        cutting_motion = index_extended and middle_extended and horizontal_distance < 0.05
+
+        return cutting_motion
+
 # Game loop
 running = True
 win = False
@@ -109,25 +129,6 @@ while running:
     else:
         print("Candy position invalid! Resetting simulation...")
         running = False  # Exit the game or handle gracefully
-
-    def is_cutting_motion(landmarks):
-        """
-        Determines if the index and middle fingers are extended and making a cutting motion.
-        """
-        index_tip = landmarks[8]
-        middle_tip = landmarks[12]
-        index_pip = landmarks[6]
-        middle_pip = landmarks[10]
-
-        # Check if fingers are extended
-        index_extended = index_tip.y < index_pip.y
-        middle_extended = middle_tip.y < middle_pip.y
-
-        # Check relative horizontal distance for cutting motion
-        horizontal_distance = abs(index_tip.x - middle_tip.x)
-        cutting_motion = index_extended and middle_extended and horizontal_distance < 0.05
-
-        return cutting_motion
 
 
     # Main game loop (update hand detection logic)
